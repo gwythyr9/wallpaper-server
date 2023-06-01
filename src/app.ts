@@ -46,7 +46,7 @@ export class App {
   }
 
   private async connectToDatabase() {
-    await createConnection(dbConnection)
+    await createConnection(dbConnection);
   }
 
   private initializeMiddlewares() {
