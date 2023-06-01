@@ -42,7 +42,7 @@ services:
     environment:
       DB_USER: root
       DB_PASSWORD: password
-      DB_DATABASE: dev
+      DB_DATABASE: wallpapers
     ports:
       - "5432:5432"
     networks:
