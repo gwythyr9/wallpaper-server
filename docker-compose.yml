@@ -24,7 +24,7 @@ services:
       DB_PASSWORD: password
       DB_HOST: pg
       DB_PORT: 5432
-      DB_DATABASE: dev
+      DB_DATABASE: wallpapers
     volumes:
       - ./:/app
       - /app/node_modules
