@@ -3,4 +3,5 @@ export interface Wallpaper {
   type: string;
   subtype: string;
   url: string;
+  name: string;
 }

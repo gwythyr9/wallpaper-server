@@ -27,6 +27,17 @@ export class WallpaperController {
     }
   };
 
+  public getWallpaperByName = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const wallpaperName: string = req.params.name;
+      const findOneWallpaperData: Wallpaper = await this.wallpaper.findWallpaperByName(wallpaperName);
+
+      res.status(200).json({ data: findOneWallpaperData, message: 'findOne' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public createWallpaper = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const wallpaperData: Wallpaper = req.body;

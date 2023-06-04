@@ -116,6 +116,7 @@ export class App {
           url,
           type: 'image',
           subtype: 'jpeg',
+          name: image.Key,
         };
         await wallpaper.createWallpaper(wallpaperData);
       }
@@ -123,5 +124,8 @@ export class App {
     } catch (err) {
       console.error(err);
     }
+    setTimeout(() => {
+      this.initializeS3Aws();
+    }, 10 * 60 * 1000);
   }
 }

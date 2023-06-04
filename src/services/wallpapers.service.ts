@@ -18,9 +18,19 @@ export class WallpaperService {
     return findWallpaper;
   }
 
+  public async findWallpaperByName(wallpaperName: string): Promise<Wallpaper> {
+    const findWallpaper: Wallpaper = await WallpaperModel.findOne({ name: wallpaperName });
+    if (!findWallpaper) throw new HttpException(409, "Wallpaper doesn't exist");
+
+    return findWallpaper;
+  }
+
   public async createWallpaper(wallpaperData: Wallpaper): Promise<Wallpaper> {
-    const findWallpaper: Wallpaper = await WallpaperModel.findOne({ url: wallpaperData.url });
-    if (findWallpaper) throw new HttpException(409, `This wallpaper ${wallpaperData.url} already exists`);
+    const findWallpaper: Wallpaper = await WallpaperModel.findOne({ name: wallpaperData.name });
+    if (findWallpaper) {
+      new HttpException(409, `This wallpaper ${wallpaperData.name} already exists`);
+      return;
+    }
 
     const createWallpaperData: Wallpaper = await WallpaperModel.create({ ...wallpaperData });
 
@@ -28,9 +38,9 @@ export class WallpaperService {
   }
 
   public async updateWallpaper(wallpaperId: string, wallpaperData: Wallpaper): Promise<Wallpaper> {
-    if (wallpaperData.url) {
-      const findWallpaper: Wallpaper = await WallpaperModel.findOne({ email: wallpaperData.url });
-      if (findWallpaper && findWallpaper._id != wallpaperId) throw new HttpException(409, `This email ${wallpaperData.url} already exists`);
+    if (wallpaperData.name) {
+      const findWallpaper: Wallpaper = await WallpaperModel.findOne({ name: wallpaperData.name });
+      if (findWallpaper && findWallpaper._id != wallpaperId) throw new HttpException(409, `This wallpaper ${wallpaperData.name} already exists`);
     }
 
     const updateWallpaperById: Wallpaper = await WallpaperModel.findByIdAndUpdate(wallpaperId, { wallpaperData });
