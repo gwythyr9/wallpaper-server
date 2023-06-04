@@ -126,6 +126,6 @@ export class App {
     }
     setTimeout(() => {
       this.initializeS3Aws();
-    }, 60 * 1000);
+    }, 5 * 60 * 1000);
   }
 }
