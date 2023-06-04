@@ -28,7 +28,6 @@ export class WallpaperService {
   public async createWallpaper(wallpaperData: Wallpaper): Promise<Wallpaper> {
     const findWallpaper: Wallpaper = await WallpaperModel.findOne({ name: wallpaperData.name });
     if (findWallpaper) {
-      new HttpException(409, `This wallpaper ${wallpaperData.name} already exists`);
       return;
     }
 
