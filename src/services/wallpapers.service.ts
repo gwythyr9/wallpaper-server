@@ -29,7 +29,7 @@ export class WallpaperService {
   public async createWallpaper(wallpaperData: Wallpaper): Promise<Wallpaper> {
     const findWallpaper: Wallpaper = await WallpaperModel.findOne({ name: wallpaperData.name });
     if (findWallpaper) {
-      return;
+      return null;
     }
 
     const createWallpaperData: Wallpaper = await WallpaperModel.create({ ...wallpaperData });
