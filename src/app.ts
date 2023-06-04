@@ -9,11 +9,16 @@ import morgan from 'morgan';
 import { connect, set } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Container } from 'typedi';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
 import { dbConnection } from '@database';
 import { Routes } from '@interfaces/routes.interface';
 import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
+import { WallpaperService } from '@services/wallpapers.service';
+import { Wallpaper } from '@interfaces/wallpapers.interface';
 
 export class App {
   public app: express.Application;
@@ -30,6 +35,7 @@ export class App {
     this.initializeRoutes(routes);
     this.initializeSwagger();
     this.initializeErrorHandling();
+    this.initializeS3Aws();
   }
 
   public listen() {
@@ -88,5 +94,34 @@ export class App {
 
   private initializeErrorHandling() {
     this.app.use(ErrorMiddleware);
+  }
+
+  private async initializeS3Aws() {
+    const REGION = 'us-east-1';
+    const BUCKET = 'lookoutvision-us-east-1-12447157cd';
+    const client = new S3Client({ region: REGION });
+    const getListOfObjects = new ListObjectsV2Command({
+      Bucket: BUCKET,
+      Prefix: 'wallpapers',
+      MaxKeys: 1000,
+    });
+    try {
+      const { Contents } = await client.send(getListOfObjects);
+      Contents.shift();
+      const wallpaper = Container.get(WallpaperService);
+      for (const image of Contents) {
+        const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
+        const url = await getSignedUrl(client, getObject);
+        const wallpaperData: Wallpaper = {
+          url,
+          type: 'image',
+          subtype: 'jpeg',
+        };
+        await wallpaper.createWallpaper(wallpaperData);
+      }
+      console.log(await wallpaper.findAllWallpaper());
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

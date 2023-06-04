@@ -1,32 +1,32 @@
 tags:
-- name: users
-  description: users API
+- name: wallpapers
+  description: wallpapers API
 
 paths:
-# [GET] users
-  /users:
+# [GET] wallpapers
+  /wallpapers:
     get:
       tags:
-      - users
-      summary: Find All Users
+      - wallpapers
+      summary: Find All Wallpapers
       responses:
         200:
           description: 'OK'
         500:
           description: 'Server Error'
 
-# [POST] users
+# [POST] wallpapers
     post:
       tags:
-      - users
-      summary: Add User
+      - wallpapers
+      summary: Add Wallpaper
       parameters:
       - name: body
         in: body
-        description: user Data
+        description: wallpaper Data
         required: true
         schema:
-          $ref: '#/definitions/users'
+          $ref: '#/definitions/wallpapers'
       responses:
         201:
           description: 'Created'
@@ -37,16 +37,16 @@ paths:
         500:
           description: 'Server Error'
 
-# [GET] users/id
-  /users/{id}:
+# [GET] wallpapers/id
+  /wallpapers/{id}:
     get:
       tags:
-      - users
-      summary: Find User By Id
+      - wallpapers
+      summary: Find Wallpaper By Id
       parameters:
       - name: id
         in: path
-        description: User Id
+        description: Wallpaper Id
         required: true
       responses:
         200:
@@ -56,22 +56,22 @@ paths:
         500:
           description: 'Server Error'
 
-# [PUT] users/id
+# [PUT] wallpapers/id
     put:
       tags:
-      - users
-      summary: Update User By Id
+      - wallpapers
+      summary: Update Wallpaper By Id
       parameters:
       - name: id
         in: path
-        description: user Id
+        description: wallpaper Id
         required: true
       - name: body
         in: body
-        description: user Data
+        description: wallpaper Data
         required: true
         schema:
-          $ref: '#/definitions/users'
+          $ref: '#/definitions/wallpapers'
       responses:
         200:
           description: 'OK'
@@ -82,15 +82,15 @@ paths:
         500:
           description: 'Server Error'
 
-# [DELETE] users/id
+# [DELETE] wallpapers/id
     delete:
       tags:
-      - users
-      summary: Delete User By Id
+      - wallpapers
+      summary: Delete Wallpaper By Id
       parameters:
       - name: id
         in: path
-        description: user Id
+        description: wallpaper Id
         required: true
       responses:
         200:
@@ -102,7 +102,7 @@ paths:
 
 # definitions
 definitions:
-  users:
+  wallpapers:
     type: object
     required:
         - email
@@ -110,10 +110,10 @@ definitions:
     properties:
       email:
         type: string
-        description: user Email
+        description: wallpaper Email
       password:
         type: string
-        description: user Password
+        description: wallpaper Password
 
 schemes:
  - https
