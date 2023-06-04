@@ -110,7 +110,7 @@ export class App {
       const { Contents } = await client.send(getListOfObjects);
       Contents.shift();
       const wallpaper = Container.get(WallpaperService);
-      for (const image of Contents) {
+      for await (const image of Contents) {
         const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
         const url = await getSignedUrl(client, getObject);
         const wallpaperData: Wallpaper = {
@@ -126,6 +126,6 @@ export class App {
     }
     setTimeout(() => {
       this.initializeS3Aws();
-    }, 10 * 60 * 1000);
+    }, 60 * 1000);
   }
 }
