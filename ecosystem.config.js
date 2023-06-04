@@ -30,7 +30,7 @@
       args: '-r tsconfig-paths/register --transpile-only src/server.ts', // ts-node args
       exec_mode: 'cluster', // 'cluster' or 'fork'
       instance_var: 'INSTANCE_ID', // instance variable
-      instances: 2, // pm2 instance count
+      instances: 1, // pm2 instance count
       autorestart: true, // auto restart if process crash
       watch: false, // files change automatic restart
       ignore_watch: ['node_modules', 'logs'], // ignore files change
@@ -46,10 +46,10 @@
   ],
   deploy: {
     production: {
-      user: 'user',
+      user: 'gwythyr9',
       host: '0.0.0.0',
       ref: 'origin/master',
-      repo: 'git@github.com:repo.git',
+      repo: 'git@github.com:gwythyr9/wallpaper-server.git',
       path: 'dist/server.js',
       'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.js --only prod',
     },
