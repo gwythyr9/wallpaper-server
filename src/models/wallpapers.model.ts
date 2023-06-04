@@ -13,6 +13,10 @@ const WallpaperSchema: Schema = new Schema({
     type: String,
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
 });
 
 export const WallpaperModel = model<Wallpaper & Document>('Wallpaper', WallpaperSchema);
