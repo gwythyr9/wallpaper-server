@@ -1,4 +1,3 @@
-import { hash } from 'bcrypt';
 import { Service } from 'typedi';
 import { HttpException } from '@exceptions/httpException';
 import { Wallpaper } from '@interfaces/wallpapers.interface';
@@ -6,8 +5,10 @@ import { WallpaperModel } from '@models/wallpapers.model';
 
 @Service()
 export class WallpaperService {
-  public async findAllWallpaper(): Promise<Wallpaper[]> {
-    const wallpapers: Wallpaper[] = await WallpaperModel.find();
+  public async findAllWallpaper(pageOptions: { page: number; limit: number }): Promise<Wallpaper[]> {
+    const wallpapers: Wallpaper[] = await WallpaperModel.find()
+      .skip(pageOptions?.page * pageOptions.limit)
+      .limit(pageOptions.limit);
     return wallpapers;
   }
 

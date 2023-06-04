@@ -72,6 +72,7 @@ export class App {
 
   private initializeRoutes(routes: Routes[]) {
     routes.forEach(route => {
+      console.log(route.router);
       this.app.use('/', route.router);
     });
   }
@@ -116,11 +117,10 @@ export class App {
           url,
           type: 'image',
           subtype: 'jpeg',
-          name: image.Key,
+          name: image.Key.replace('wallpapers/', ''),
         };
         await wallpaper.createWallpaper(wallpaperData);
       }
-      console.log(await wallpaper.findAllWallpaper());
     } catch (err) {
       console.error(err);
     }

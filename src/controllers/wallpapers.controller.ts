@@ -8,7 +8,11 @@ export class WallpaperController {
 
   public getWallpapers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const findAllWallpapersData: Wallpaper[] = await this.wallpaper.findAllWallpaper();
+      const pageOptions = {
+        page: +req.query?.page || 0,
+        limit: +req.query?.limit || 10,
+      };
+      const findAllWallpapersData: Wallpaper[] = await this.wallpaper.findAllWallpaper(pageOptions);
 
       res.status(200).json({ data: findAllWallpapersData, message: 'findAll' });
     } catch (error) {
@@ -29,7 +33,7 @@ export class WallpaperController {
 
   public getWallpaperByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const wallpaperName: string = req.params.name;
+      const wallpaperName: string = req.query?.name as string;
       const findOneWallpaperData: Wallpaper = await this.wallpaper.findWallpaperByName(wallpaperName);
 
       res.status(200).json({ data: findOneWallpaperData, message: 'findOne' });

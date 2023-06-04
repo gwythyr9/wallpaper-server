@@ -1,7 +1,7 @@
 export interface Wallpaper {
   _id?: string;
   type: string;
-  subtype: string;
+  subtype?: string;
   url: string;
   name: string;
 }
