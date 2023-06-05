@@ -112,7 +112,7 @@ export class App {
       const wallpaper = Container.get(WallpaperService);
       for await (const image of Contents) {
         const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
-        const url = await getSignedUrl(client, getObject);
+        const url = await getSignedUrl(client, getObject, { expiresIn: 86400 });
         const wallpaperData: Wallpaper = {
           url,
           type: 'image',
