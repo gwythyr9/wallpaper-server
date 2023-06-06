@@ -10,7 +10,7 @@ const WallpaperSchema: Schema = new Schema({
     type: String,
   },
   url: {
-    type: String,
+    type: Array,
     required: true,
   },
   name: {

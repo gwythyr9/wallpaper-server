@@ -101,31 +101,80 @@ export class App {
     const REGION = 'us-east-1';
     const BUCKET = 'lookoutvision-us-east-1-12447157cd';
     const client = new S3Client({ region: REGION });
-    const getListOfObjects = new ListObjectsV2Command({
+    const getListOfVideo = new ListObjectsV2Command({
       Bucket: BUCKET,
-      Prefix: 'wallpapers',
+      Prefix: 'wallpapers/video',
       MaxKeys: 1000,
     });
+    const getListOfImage = new ListObjectsV2Command({
+      Bucket: BUCKET,
+      Prefix: 'wallpapers/image',
+      MaxKeys: 1000,
+    });
+    const getListOfTheme = new ListObjectsV2Command({
+      Bucket: BUCKET,
+      Prefix: 'wallpapers/theme',
+      MaxKeys: 1000,
+    });
+    // const getListOfParallax = new ListObjectsV2Command({
+    //   Bucket: BUCKET,
+    //   Prefix: 'wallpapers/parallax',
+    //   MaxKeys: 1000,
+    // });
     try {
-      const { Contents } = await client.send(getListOfObjects);
-      Contents.shift();
+      const { Contents: video } = await client.send(getListOfVideo);
+      const { Contents: images } = await client.send(getListOfImage);
+      const { Contents: theme } = await client.send(getListOfTheme);
+      video.shift();
+      images.shift();
+      theme.shift();
+      const data = [...video, ...images, ...theme];
+      console.log('file: app.ts:120 ~ App ~ initializeS3Aws ~ data:', data);
       const wallpaper = Container.get(WallpaperService);
-      for await (const image of Contents) {
+      for (const image of data) {
+        const imageKey = image.Key.replace('wallpapers/', '');
+        const imageSplit = imageKey.split('/');
+        if (imageSplit?.[2] === '' || (imageSplit?.[1] === '' && (imageSplit?.[0] === 'video' || imageSplit?.[0] === 'image'))) continue;
         const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
         const url = await getSignedUrl(client, getObject, { expiresIn: 86400 });
         const wallpaperData: Wallpaper = {
-          url,
-          type: 'image',
-          subtype: 'jpeg',
-          name: image.Key.replace('wallpapers/', ''),
+          url: [url],
+          type: imageSplit?.[0],
+          subtype: imageSplit?.[0] === 'video' ? imageSplit[0] : imageSplit[1],
+          name: imageSplit?.[2] || imageSplit[1],
         };
         await wallpaper.createWallpaper(wallpaperData);
       }
+      // const { Contents: parallax } = await client.send(getListOfParallax);
+      // parallax.shift();
+      // parallax.shift();
+      // let folderName = 'one';
+      // let urls = [];
+      // for (const image of parallax) {
+      //   const imageKey = image.Key.replace('wallpapers/', '');
+      //   const imageSplit = imageKey.split('/');
+      //   if (folderName !== imageSplit[1] || urls.length === parallax.length) {
+      //     console.log(urls);
+      //     const wallpaperData: Wallpaper = {
+      //       url: urls,
+      //       type: imageSplit[0],
+      //       subtype: imageSplit[0] === 'video' ? imageSplit[0] : imageSplit[1],
+      //       name: imageSplit[2] || imageSplit[1],
+      //     };
+      //     await wallpaper.createWallpaper(wallpaperData);
+      //     urls = [];
+      //   }
+      //   folderName = imageSplit[1];
+      //   const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
+      //   const url = await getSignedUrl(client, getObject, { expiresIn: 86400 });
+      //   urls.push(url);
+      // }
+      // console.log(urls);
     } catch (err) {
       console.error(err);
     }
-    setTimeout(() => {
-      this.initializeS3Aws();
-    }, 5 * 60 * 1000);
+    // setTimeout(() => {
+    //   this.initializeS3Aws();
+    // }, 5 * 60 * 1000);
   }
 }
