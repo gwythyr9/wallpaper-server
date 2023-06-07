@@ -51,7 +51,7 @@
       ref: 'origin/master',
       repo: 'git@github.com:gwythyr9/wallpaper-server.git',
       path: 'dist/server.js',
-      'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.js --only prod',
+      'post-deploy': 'npm run build && pm2 reload ecosystem.config.js --only prod',
     },
   },
 };
