@@ -9,15 +9,12 @@ import morgan from 'morgan';
 import { connect, set } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { Container } from 'typedi';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
 import { dbConnection } from '@database';
 import { Routes } from '@interfaces/routes.interface';
 import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
-import { WallpaperService } from '@services/wallpapers.service';
-import { Wallpaper } from '@interfaces/wallpapers.interface';
+import WallpapersJobs from '@jobs/wallpapers.jobs';
 
 export class App {
   public app: express.Application;
@@ -34,7 +31,7 @@ export class App {
     this.initializeRoutes(routes);
     this.initializeSwagger();
     this.initializeErrorHandling();
-    this.initializeS3Aws();
+    this.initializeNodeSchedule();
   }
 
   public listen() {
@@ -71,7 +68,6 @@ export class App {
 
   private initializeRoutes(routes: Routes[]) {
     routes.forEach(route => {
-      console.log(route.router);
       this.app.use('/', route.router);
     });
   }
@@ -96,96 +92,7 @@ export class App {
     this.app.use(ErrorMiddleware);
   }
 
-  private async initializeS3Aws() {
-    const REGION = 'us-east-1';
-    const BUCKET = 'lookoutvision-us-east-1-12447157cd';
-    const client = new S3Client({ region: REGION });
-    const getListOfVideo = new ListObjectsV2Command({
-      Bucket: BUCKET,
-      Prefix: 'wallpapers/video',
-      MaxKeys: 1000,
-    });
-    const getListOfImage = new ListObjectsV2Command({
-      Bucket: BUCKET,
-      Prefix: 'wallpapers/image',
-      MaxKeys: 1000,
-    });
-    const getListOfTheme = new ListObjectsV2Command({
-      Bucket: BUCKET,
-      Prefix: 'wallpapers/theme/theme',
-      MaxKeys: 1000,
-    });
-    const getListOfParallaxFolders = new ListObjectsV2Command({
-      Bucket: BUCKET,
-      Prefix: 'wallpapers/parallax',
-      Delimiter: '.',
-      MaxKeys: 1000,
-    });
-    try {
-      const { Contents: video } = await client.send(getListOfVideo);
-      const { Contents: images } = await client.send(getListOfImage);
-      const { Contents: theme } = await client.send(getListOfTheme);
-      video.shift();
-      images.shift();
-      theme.shift();
-      const data = [...video, ...images];
-      const wallpaper = Container.get(WallpaperService);
-      for (const imageTheme of theme) {
-        const imageKey = imageTheme.Key.replace('wallpapers/', '');
-        console.log(imageTheme);
-        const imageSplit = imageKey.split('/');
-        const wallpaperData: Wallpaper = {
-          url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${imageTheme.Key}`],
-          type: 'theme',
-          subtype: 'theme',
-          name: imageSplit[2],
-        };
-        console.log(imageSplit[2]);
-        await wallpaper.createWallpaper(wallpaperData);
-      }
-
-      for (const image of data) {
-        const imageKey = image.Key.replace('wallpapers/', '');
-        const imageSplit = imageKey.split('/');
-        if (
-          imageSplit?.[2] === '' ||
-          (imageSplit?.[1] === '' && (imageSplit?.[0] === 'video' || imageSplit?.[0] === 'image' || imageSplit?.[0] === 'theme'))
-        )
-          continue;
-        const wallpaperData: Wallpaper = {
-          url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${image.Key}`],
-          type: imageSplit?.[0],
-          subtype: imageSplit?.[0] === 'video' ? imageSplit[0] : imageSplit[1],
-          name: imageSplit?.[2] || imageSplit[1],
-        };
-        await wallpaper.createWallpaper(wallpaperData);
-      }
-      const { Contents: parallaxFolders } = await client.send(getListOfParallaxFolders);
-      parallaxFolders.shift();
-      for (const folder of parallaxFolders) {
-        const getListFolderFiles = new ListObjectsV2Command({
-          Bucket: BUCKET,
-          Prefix: folder.Key,
-          MaxKeys: 1000,
-        });
-        const { Contents: parallaxFiles } = await client.send(getListFolderFiles);
-        parallaxFiles.shift();
-        const parallaxUrls = parallaxFiles.map(u => `https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${u.Key}`);
-        const imageKey = folder.Key.replace('wallpapers/', '');
-        const imageSplit = imageKey.split('/');
-        const wallpaperData: Wallpaper = {
-          url: parallaxUrls,
-          type: imageSplit[0],
-          subtype: imageSplit[1],
-          name: imageSplit[0] + imageSplit[1],
-        };
-        await wallpaper.createWallpaper(wallpaperData);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    setTimeout(() => {
-      this.initializeS3Aws();
-    }, 5 * 60 * 1000);
+  private async initializeNodeSchedule() {
+    WallpapersJobs.refreshUrls();
   }
 }

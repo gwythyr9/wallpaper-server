@@ -9,6 +9,7 @@ export class WallpaperService {
     const wallpapers: Wallpaper[] = await WallpaperModel.find()
       .skip(pageOptions?.page * pageOptions.limit)
       .limit(pageOptions.limit);
+    console.log('file: wallpapers.service.ts:12 ~ WallpaperService ~ findAllWallpaper ~ wallpapers:', wallpapers);
     return wallpapers;
   }
 
@@ -35,6 +36,13 @@ export class WallpaperService {
     const createWallpaperData: Wallpaper = await WallpaperModel.create({ ...wallpaperData });
 
     return createWallpaperData;
+  }
+
+  public async updateWallpaperDocument(wallpaperData: Wallpaper[]): Promise<void> {
+    for (const item of wallpaperData) {
+      await WallpaperModel.updateOne({ name: item.name }, { $set: item }, { upsert: true });
+    }
+    await WallpaperModel.deleteMany({ name: { $nin: wallpaperData.map(i => i.name) } });
   }
 
   public async updateWallpaper(wallpaperId: string, wallpaperData: Wallpaper): Promise<Wallpaper> {
