@@ -112,7 +112,7 @@ export class App {
     });
     const getListOfTheme = new ListObjectsV2Command({
       Bucket: BUCKET,
-      Prefix: 'wallpapers/theme',
+      Prefix: 'wallpapers/theme/theme',
       MaxKeys: 1000,
     });
     const getListOfParallaxFolders = new ListObjectsV2Command({
@@ -128,12 +128,30 @@ export class App {
       video.shift();
       images.shift();
       theme.shift();
-      const data = [...video, ...images, ...theme];
+      const data = [...video, ...images];
       const wallpaper = Container.get(WallpaperService);
+      for (const imageTheme of theme) {
+        const imageKey = imageTheme.Key.replace('wallpapers/', '');
+        console.log(imageTheme);
+        const imageSplit = imageKey.split('/');
+        const wallpaperData: Wallpaper = {
+          url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${imageTheme.Key}`],
+          type: 'theme',
+          subtype: 'theme',
+          name: imageSplit[2],
+        };
+        console.log(imageSplit[2]);
+        await wallpaper.createWallpaper(wallpaperData);
+      }
+
       for (const image of data) {
         const imageKey = image.Key.replace('wallpapers/', '');
         const imageSplit = imageKey.split('/');
-        if (imageSplit?.[2] === '' || (imageSplit?.[1] === '' && (imageSplit?.[0] === 'video' || imageSplit?.[0] === 'image'))) continue;
+        if (
+          imageSplit?.[2] === '' ||
+          (imageSplit?.[1] === '' && (imageSplit?.[0] === 'video' || imageSplit?.[0] === 'image' || imageSplit?.[0] === 'theme'))
+        )
+          continue;
         const wallpaperData: Wallpaper = {
           url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${image.Key}`],
           type: imageSplit?.[0],
@@ -145,7 +163,6 @@ export class App {
       const { Contents: parallaxFolders } = await client.send(getListOfParallaxFolders);
       parallaxFolders.shift();
       for (const folder of parallaxFolders) {
-        console.log(folder.Key);
         const getListFolderFiles = new ListObjectsV2Command({
           Bucket: BUCKET,
           Prefix: folder.Key,
@@ -162,7 +179,6 @@ export class App {
           subtype: imageSplit[1],
           name: imageSplit[0] + imageSplit[1],
         };
-        console.log(wallpaperData);
         await wallpaper.createWallpaper(wallpaperData);
       }
     } catch (err) {
