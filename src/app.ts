@@ -9,8 +9,7 @@ import morgan from 'morgan';
 import { connect, set } from 'mongoose';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { Container } from 'typedi';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
 import { dbConnection } from '@database';
@@ -116,11 +115,12 @@ export class App {
       Prefix: 'wallpapers/theme',
       MaxKeys: 1000,
     });
-    // const getListOfParallax = new ListObjectsV2Command({
-    //   Bucket: BUCKET,
-    //   Prefix: 'wallpapers/parallax',
-    //   MaxKeys: 1000,
-    // });
+    const getListOfParallaxFolders = new ListObjectsV2Command({
+      Bucket: BUCKET,
+      Prefix: 'wallpapers/parallax',
+      Delimiter: '.',
+      MaxKeys: 1000,
+    });
     try {
       const { Contents: video } = await client.send(getListOfVideo);
       const { Contents: images } = await client.send(getListOfImage);
@@ -129,52 +129,47 @@ export class App {
       images.shift();
       theme.shift();
       const data = [...video, ...images, ...theme];
-      console.log('file: app.ts:120 ~ App ~ initializeS3Aws ~ data:', data);
       const wallpaper = Container.get(WallpaperService);
       for (const image of data) {
         const imageKey = image.Key.replace('wallpapers/', '');
         const imageSplit = imageKey.split('/');
         if (imageSplit?.[2] === '' || (imageSplit?.[1] === '' && (imageSplit?.[0] === 'video' || imageSplit?.[0] === 'image'))) continue;
-        const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
-        const url = await getSignedUrl(client, getObject, { expiresIn: 86400 });
         const wallpaperData: Wallpaper = {
-          url: [url],
+          url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${image.Key}`],
           type: imageSplit?.[0],
           subtype: imageSplit?.[0] === 'video' ? imageSplit[0] : imageSplit[1],
           name: imageSplit?.[2] || imageSplit[1],
         };
         await wallpaper.createWallpaper(wallpaperData);
       }
-      // const { Contents: parallax } = await client.send(getListOfParallax);
-      // parallax.shift();
-      // parallax.shift();
-      // let folderName = 'one';
-      // let urls = [];
-      // for (const image of parallax) {
-      //   const imageKey = image.Key.replace('wallpapers/', '');
-      //   const imageSplit = imageKey.split('/');
-      //   if (folderName !== imageSplit[1] || urls.length === parallax.length) {
-      //     console.log(urls);
-      //     const wallpaperData: Wallpaper = {
-      //       url: urls,
-      //       type: imageSplit[0],
-      //       subtype: imageSplit[0] === 'video' ? imageSplit[0] : imageSplit[1],
-      //       name: imageSplit[2] || imageSplit[1],
-      //     };
-      //     await wallpaper.createWallpaper(wallpaperData);
-      //     urls = [];
-      //   }
-      //   folderName = imageSplit[1];
-      //   const getObject = new GetObjectCommand({ Bucket: BUCKET, Key: image.Key });
-      //   const url = await getSignedUrl(client, getObject, { expiresIn: 86400 });
-      //   urls.push(url);
-      // }
-      // console.log(urls);
+      const { Contents: parallaxFolders } = await client.send(getListOfParallaxFolders);
+      parallaxFolders.shift();
+      for (const folder of parallaxFolders) {
+        console.log(folder.Key);
+        const getListFolderFiles = new ListObjectsV2Command({
+          Bucket: BUCKET,
+          Prefix: folder.Key,
+          MaxKeys: 1000,
+        });
+        const { Contents: parallaxFiles } = await client.send(getListFolderFiles);
+        parallaxFiles.shift();
+        const parallaxUrls = parallaxFiles.map(u => `https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${u.Key}`);
+        const imageKey = folder.Key.replace('wallpapers/', '');
+        const imageSplit = imageKey.split('/');
+        const wallpaperData: Wallpaper = {
+          url: parallaxUrls,
+          type: imageSplit[0],
+          subtype: imageSplit[1],
+          name: imageSplit[0] + imageSplit[1],
+        };
+        console.log(wallpaperData);
+        await wallpaper.createWallpaper(wallpaperData);
+      }
     } catch (err) {
       console.error(err);
     }
-    // setTimeout(() => {
-    //   this.initializeS3Aws();
-    // }, 5 * 60 * 1000);
+    setTimeout(() => {
+      this.initializeS3Aws();
+    }, 5 * 60 * 1000);
   }
 }
