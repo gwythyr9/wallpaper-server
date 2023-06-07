@@ -14,7 +14,7 @@ import { dbConnection } from '@database';
 import { Routes } from '@interfaces/routes.interface';
 import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
-import WallpapersJobs from '@jobs/wallpapers.jobs';
+import WallpapersJobs from './jobs/wallpapers.jobs';
 
 export class App {
   public app: express.Application;
