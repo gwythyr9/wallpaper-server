@@ -39,6 +39,7 @@ class WallpapersJobs {
         for (const imageTheme of theme) {
           const imageKey = imageTheme.Key.replace('wallpapers/', '');
           const imageSplit = imageKey.split('/');
+          console.log('file: wallpapers.jobs.ts:42 ~ WallpapersJobs ~ schedule.scheduleJob ~ imageSplit:', imageSplit);
           const wallpaperData: Wallpaper = {
             url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${imageTheme.Key}`],
             type: 'theme',

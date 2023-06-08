@@ -9,7 +9,6 @@ export class WallpaperService {
     const wallpapers: Wallpaper[] = await WallpaperModel.find()
       .skip(pageOptions?.page * pageOptions.limit)
       .limit(pageOptions.limit);
-    console.log('file: wallpapers.service.ts:12 ~ WallpaperService ~ findAllWallpaper ~ wallpapers:', wallpapers);
     return wallpapers;
   }
 
