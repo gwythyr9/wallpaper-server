@@ -22,7 +22,7 @@ class WallpapersJobs {
       });
       const getListOfTheme = new ListObjectsV2Command({
         Bucket: BUCKET,
-        Prefix: 'wallpapers/theme/theme/',
+        Prefix: 'wallpapers/theme/theme',
         MaxKeys: 1000,
       });
       const getListOfParallaxFolders = new ListObjectsV2Command({
@@ -35,7 +35,7 @@ class WallpapersJobs {
       const allWallpapers: Wallpaper[] = [];
       try {
         const { Contents: theme } = await client.send(getListOfTheme);
-        console.log(theme);
+        theme.shift();
         for (const imageTheme of theme) {
           const imageKey = imageTheme.Key.replace('wallpapers/', '');
           const imageSplit = imageKey.split('/');
