@@ -6,13 +6,13 @@ import { Wallpaper } from '@interfaces/wallpapers.interface';
 
 class WallpapersJobs {
   public refreshUrls() {
-    schedule.scheduleJob('*/10 * * * *', async () => {
+    schedule.scheduleJob('*/5 * * * *', async () => {
       const REGION = 'us-east-1';
       const BUCKET = 'lookoutvision-us-east-1-12447157cd';
       const client = new S3Client({ region: REGION });
       const getListOfVideo = new ListObjectsV2Command({
         Bucket: BUCKET,
-        Prefix: 'wallpapers/video',
+        Prefix: 'wallpapers/video/video',
         MaxKeys: 1000,
       });
       const getListOfImage = new ListObjectsV2Command({
@@ -28,7 +28,6 @@ class WallpapersJobs {
       const getListOfParallaxFolders = new ListObjectsV2Command({
         Bucket: BUCKET,
         Prefix: 'wallpapers/parallax',
-        Delimiter: '.',
         MaxKeys: 1000,
       });
       const wallpaper = Container.get(WallpaperService);
@@ -36,7 +35,7 @@ class WallpapersJobs {
       try {
         const { Contents: theme } = await client.send(getListOfTheme);
         theme.shift();
-        for (const imageTheme of theme) {
+        for await (const imageTheme of theme) {
           const imageKey = imageTheme.Key.replace('wallpapers/', '');
           const imageSplit = imageKey.split('/');
           const wallpaperData: Wallpaper = {
@@ -50,14 +49,14 @@ class WallpapersJobs {
         }
         const { Contents: videos } = await client.send(getListOfVideo);
         videos.shift();
-        for (const video of videos) {
+        for await (const video of videos) {
           const videoKey = video.Key.replace('wallpapers/', '');
           const videoSplit = videoKey.split('/');
           const wallpaperData: Wallpaper = {
             url: [`https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${video.Key}`],
             type: 'video',
             subtype: 'video',
-            name: videoSplit[1],
+            name: videoSplit[2],
           };
           allWallpapers.push(wallpaperData);
           // await wallpaper.createWallpaper(wallpaperData);
@@ -65,7 +64,7 @@ class WallpapersJobs {
         const { Contents: images } = await client.send(getListOfImage);
         images.shift();
         const filtredImages = images.filter(i => !i.Key.endsWith('/'));
-        for (const image of filtredImages) {
+        for await (const image of filtredImages) {
           const imageKey = image.Key.replace('wallpapers/', '');
           const imageSplit = imageKey.split('/');
           const wallpaperData: Wallpaper = {
@@ -79,7 +78,8 @@ class WallpapersJobs {
         }
         const { Contents: parallaxFolders } = await client.send(getListOfParallaxFolders);
         parallaxFolders.shift();
-        for (const folder of parallaxFolders) {
+        const filtredParallax = parallaxFolders.filter(i => !i.Key.endsWith('/'));
+        for await (const folder of filtredParallax) {
           const getListFolderFiles = new ListObjectsV2Command({
             Bucket: BUCKET,
             Prefix: folder.Key,
