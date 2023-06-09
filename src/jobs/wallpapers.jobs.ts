@@ -87,7 +87,6 @@ class WallpapersJobs {
             MaxKeys: 1000,
           });
           const { Contents: parallaxFiles } = await client.send(getListFolderFiles);
-          parallaxFiles.shift();
           const parallaxUrls = parallaxFiles.map(u => `https://lookoutvision-us-east-1-12447157cd.s3.amazonaws.com/${u.Key}`);
           const imageKey = folder.replace('wallpapers/', '');
           const imageSplit = imageKey.split('/');
