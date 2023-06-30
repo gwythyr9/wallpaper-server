@@ -6,7 +6,7 @@ import { Wallpaper } from '@interfaces/wallpapers.interface';
 
 class WallpapersJobs {
   public refreshUrls() {
-    schedule.scheduleJob('*/1 * * * *', async () => {
+    schedule.scheduleJob('*/10 * * * *', async () => {
       const REGION = 'us-east-1';
       const BUCKET = 'wallpapersapp';
       const client = new S3Client({
@@ -42,8 +42,7 @@ class WallpapersJobs {
       const allWallpapers: Wallpaper[] = [];
       try {
         const { Contents: theme } = await client.send(getListOfTheme);
-        console.log(theme);
-        // theme.shift();
+        theme.shift();
         for (const imageTheme of theme) {
           const imageKey = imageTheme.Key.replace('wallpapersapp/', '');
           const imageSplit = imageKey.split('/');
