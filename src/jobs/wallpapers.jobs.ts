@@ -6,7 +6,7 @@ import { Wallpaper } from '@interfaces/wallpapers.interface';
 
 class WallpapersJobs {
   public refreshUrls() {
-    schedule.scheduleJob('*/10 * * * *', async () => {
+    schedule.scheduleJob('*/240 * * * *', async () => {
       const REGION = 'us-east-1';
       const BUCKET = 'wallpapersapp';
       const client = new S3Client({
