@@ -93,6 +93,7 @@ export class App {
   }
 
   private async initializeNodeSchedule() {
+    await WallpapersJobs.refreshUrlsInit();
     WallpapersJobs.refreshUrls();
   }
 }
